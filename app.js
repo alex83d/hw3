@@ -2,6 +2,9 @@ const createError = require('http-errors')
 const express = require('express')
 const path = require('path')
 const logger = require('morgan')
+const session = require('express-session')
+const port = process.env.PORT || 3000
+const FileStore = require('session-file-store')(session)
 
 const mainRouter = require('./routes/')
 
@@ -10,6 +13,17 @@ const app = express()
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
+
+app.use(
+  session({
+    secret: 'keyboard cat',
+    key: 'secretKey',
+    saveUninitialized: false,
+    resave: false,
+    store: new FileStore(),
+    cookie: { maxAge: 3600000, secure: false, httpOnly: true },
+  })
+)
 
 process.env.NODE_ENV === 'development'
   ? app.use(logger('dev'))
@@ -40,4 +54,6 @@ app.use((err, req, res, next) => {
   res.render('error')
 })
 
-app.listen(3000, () => {})
+const server = app.listen(port, function () {
+  console.log(`Сервер запущен, порт: ${server.address().port}...`)
+})
